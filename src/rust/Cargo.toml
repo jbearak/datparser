@@ -1,0 +1,20 @@
+[package]
+name = "datparser"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-only"
+publish = false
+
+[lib]
+crate-type = ["staticlib"]
+path = "lib.rs"
+
+# The fixed-width reader; it has no dependencies.
+[dependencies]
+fixed-width = { path = "fixed_width" }
+
+[workspace]
+
+[profile.release]
+lto = true
+codegen-units = 1

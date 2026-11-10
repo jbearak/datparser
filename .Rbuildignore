@@ -1,0 +1,12 @@
+^src/rust/target$
+^.*\.Rproj$
+^\.git$
+^\.gitignore$
+^\.github$
+^compat$
+^docs$
+^scripts$
+^rust-tests$
+^README\.md$
+^AGENTS\.md$
+^LICENSE$
