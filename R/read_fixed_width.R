@@ -51,7 +51,7 @@
 #'   `skip` and `n_max`. String columns are character, a blank field
 #'   `""`. Every missing value is `NA`; the setup's `.A` to `.Z` and the
 #'   letters `recodes = "tagged"` gives are tagged NAs, as haven makes
-#'   them (`haven::na_tag()` and `dtaparser::na_tag()` read the letter).
+#'   them (`haven::na_tag()` reads the letter).
 #'
 #'   A column's label is its attribute `label`. A numeric column with
 #'   value labels has attribute `labels`: the codes, tagged NAs among
@@ -59,9 +59,7 @@
 #'   codes move to their tagged NA, or go when the code becomes a plain
 #'   `NA`. The column is a plain integer or double vector, which keeps
 #'   the attribute through `filter()` and `arrange()` but not through
-#'   `x[i]` or `bind_rows()`. datakit's `read_fixed_width()` gives such
-#'   columns as `dtaparser_labelled` instead, which keeps them (see
-#'   `dtaparser::with_labels()`).
+#'   `x[i]` or `bind_rows()`.
 #'
 #'   With `factors = TRUE`, a column with value labels on any number is
 #'   a factor whose levels are, in order of value, the labelled codes and

@@ -69,7 +69,7 @@ the rows read hold tagged NAs, so a column's type can depend on
 \code{skip} and \code{n_max}. String columns are character, a blank field
 \code{""}. Every missing value is \code{NA}; the setup's \code{.A} to \code{.Z} and the
 letters \code{recodes = "tagged"} gives are tagged NAs, as haven makes
-them (\code{haven::na_tag()} and \code{dtaparser::na_tag()} read the letter).
+them (\code{haven::na_tag()} reads the letter).
 
 A column's label is its attribute \code{label}. A numeric column with
 value labels has attribute \code{labels}: the codes, tagged NAs among
@@ -77,9 +77,7 @@ them, named by their text, in code order. Value labels on recoded
 codes move to their tagged NA, or go when the code becomes a plain
 \code{NA}. The column is a plain integer or double vector, which keeps
 the attribute through \code{filter()} and \code{arrange()} but not through
-\code{x[i]} or \code{bind_rows()}. datakit's \code{read_fixed_width()} gives such
-columns as \code{dtaparser_labelled} instead, which keeps them (see
-\code{dtaparser::with_labels()}).
+\code{x[i]} or \code{bind_rows()}.
 
 With \code{factors = TRUE}, a column with value labels on any number is
 a factor whose levels are, in order of value, the labelled codes and
