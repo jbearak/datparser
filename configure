@@ -1,0 +1,11 @@
+#!/bin/sh
+# Check that the Rust code and cargo are there before R builds src/.
+set -e
+if [ ! -d src/rust/fixed_width ]; then
+  echo "datparser: the Rust code (src/rust/fixed_width) is missing" >&2
+  exit 1
+fi
+if ! command -v cargo >/dev/null 2>&1; then
+  echo "datparser: building needs cargo; see https://rustup.rs" >&2
+  exit 1
+fi

@@ -1,0 +1,4 @@
+datparser bundles its own Rust code (src/rust, GPL-3.0-only), which
+takes nothing from crates.io. That code began as the fixed-width reader
+of the dta crate of https://github.com/jbearak/dta-parser (GPL-3.0-only),
+by the same author.

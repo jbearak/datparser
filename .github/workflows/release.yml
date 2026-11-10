@@ -1,0 +1,113 @@
+# On a tag v<version>, build datparser's source package and binaries for
+# macOS (arm64), Windows (x86_64) and Linux (Ubuntu 24.04, x86_64), for
+# the current and previous R releases, and publish them: a CRAN-like
+# repository on GitHub Pages, from which install.packages() fetches
+# datparser without a Rust toolchain, and a GitHub release holding the
+# same files. Pages holds the latest release only; the releases keep
+# every one.
+#
+# Pages must be set to deploy from GitHub Actions (Settings > Pages).
+
+name: release
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: r-lib/actions/setup-r@v2
+      - run: R CMD build .
+      - name: The version matches the tag
+        run: test -f "datparser_${GITHUB_REF_NAME#v}.tar.gz"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r-source
+          path: datparser_*.tar.gz
+
+  binary:
+    needs: source
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-24.04]
+        r: [release, oldrel-1]
+    runs-on: ${{ matrix.os }}
+    env:
+      # CRAN's arm64 builds of R run on macOS 11 and later.
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ runner.os == 'Windows' && 'x86_64-pc-windows-gnu' || '' }}
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r }}
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::testthat, any::haven, any::jsonlite
+      - uses: actions/download-artifact@v4
+        with:
+          name: r-source
+          path: source
+      # Builds the binary from the source package, as a user without the
+      # repository would, and installs it for the tests.
+      - name: Build the binary package
+        shell: bash
+        run: |
+          mkdir built && cd built
+          R CMD INSTALL --build ../source/datparser_*.tar.gz
+      - name: Test it
+        shell: bash
+        run: Rscript -e 'testthat::test_dir("tests/testthat", package = "datparser", load_package = "installed", stop_on_failure = TRUE)'
+      - run: Rscript scripts/place-r-binaries.R built out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r-binary-${{ matrix.os }}-${{ matrix.r }}
+          path: out
+
+  publish:
+    needs: binary
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Assemble the repository
+        run: |
+          mkdir -p site/src/contrib assets
+          cp artifacts/r-source/*.tar.gz site/src/contrib/
+          cp artifacts/r-source/*.tar.gz assets/
+          for d in artifacts/r-binary-*; do
+            cp -R "$d"/repo/. site/
+            cp "$d"/assets/* assets/
+          done
+          Rscript -e 'tools::write_PACKAGES("site/src/contrib", type = "source")'
+          sed "s/@VERSION@/${GITHUB_REF_NAME#v}/g" scripts/r-repo-index.html > site/index.html
+          find site -type f | sort
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
+      - name: Make the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" assets/* \
+            --title "datparser ${GITHUB_REF_NAME#v}" \
+            --notes "datparser ${GITHUB_REF_NAME#v}: the source package, and binaries for macOS (arm64), Windows (x86_64) and Ubuntu 24.04 (x86_64). Install it with install.packages() from https://jbearak.github.io/datparser; see the README."

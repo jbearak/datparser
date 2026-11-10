@@ -1,0 +1,11 @@
+[package]
+name = "fixed-width"
+description = "Read fixed-width text through its SAS setup file"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-only"
+rust-version = "1.82"
+publish = false
+
+# No dependencies, so the R package builds offline.
+[dependencies]

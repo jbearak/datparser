@@ -1,0 +1,16 @@
+# The Rust tests of src/rust/fixed_width, kept out of the R package so
+# that its Cargo.lock holds no test-only crates.
+[package]
+name = "rust-tests"
+version = "0.0.0"
+edition = "2021"
+license = "GPL-3.0-only"
+publish = false
+
+[dependencies]
+fixed-width = { path = "../src/rust/fixed_width" }
+
+[dev-dependencies]
+serde_json = "1"
+
+[workspace]
